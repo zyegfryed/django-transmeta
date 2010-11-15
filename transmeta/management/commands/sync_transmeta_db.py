@@ -143,7 +143,7 @@ class Command(BaseCommand):
                                   qn(f.column), qn(field_name)))
             if not f.null and lang == self.default_lang:
                 # changing to NOT NULL after having data copied
-                sql_output.append("ALTER TABLE %s ALTER COLUMN %s SET %s" % \
+                sql_output.append("ALTER TABLE %s ALTER COLUMN %s SET %s %s" % \
                                   (qn(db_table), qn(f.column), col_type, \
                                   style.SQL_KEYWORD('NOT NULL')))
         if not was_translatable_before:
