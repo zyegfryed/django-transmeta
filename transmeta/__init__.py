@@ -20,6 +20,12 @@ def get_real_fieldname_in_each_language(field):
     return [get_real_fieldname(field, lang[LANGUAGE_CODE])
             for lang in settings.LANGUAGES]
 
+def transmeta_field(field):
+    """
+    A helper for django admin.
+    """
+    return tuple(get_real_fieldname_in_each_language(field))
+
 
 def canonical_fieldname(db_field):
     """ all "description_en", "description_fr", etc. field names will return "description" """
