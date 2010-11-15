@@ -136,17 +136,17 @@ class Command(BaseCommand):
             col_type = f.db_type()
             field_sql = [style.SQL_FIELD(qn(f.column)), style.SQL_COLTYPE(col_type)]
             # column creation
-            sql_output.append("ALTER TABLE %s ADD COLUMN %s" % (qn(db_table), ' '.join(field_sql)))
+            sql_output.append("ALTER TABLE %s ADD COLUMN %s;" % (qn(db_table), ' '.join(field_sql)))
             if lang == self.default_lang and not was_translatable_before:
                 # data copy from old field (only for default language)
                 sql_output.append("UPDATE %s SET %s = %s" % (qn(db_table), \
                                   qn(f.column), qn(field_name)))
             if not f.null and lang == self.default_lang:
                 # changing to NOT NULL after having data copied
-                sql_output.append("ALTER TABLE %s ALTER COLUMN %s SET %s %s" % \
+                sql_output.append("ALTER TABLE %s MODIFY COLUMN %s %s %s;" % \
                                   (qn(db_table), qn(f.column), col_type, \
                                   style.SQL_KEYWORD('NOT NULL')))
         if not was_translatable_before:
             # we drop field only if field was no translatable before
-            sql_output.append("ALTER TABLE %s DROP COLUMN %s" % (qn(db_table), qn(field_name)))
+            sql_output.append("ALTER TABLE %s DROP COLUMN %s;" % (qn(db_table), qn(field_name)))
         return sql_output
