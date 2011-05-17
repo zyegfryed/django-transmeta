@@ -9,6 +9,9 @@ from django.utils.translation import get_language, string_concat
 LANGUAGE_CODE = 0
 LANGUAGE_NAME = 1
 
+DEFAULT_LANGUAGE = getattr(settings, 'TRANSMETA_DEFAULT_LANGUAGE',
+                           settings.LANGUAGE_CODE)
+
 
 def get_real_fieldname(field, lang=None):
     if lang is None:
@@ -58,9 +61,7 @@ def default_value_getter(field):
         elif getattr(self, attname(settings.LANGUAGE_CODE), None):
             result = getattr(self, attname(settings.LANGUAGE_CODE))
         else:
-            default_transmeta_attr = attname(
-                getattr(settings, 'TRANSMETA_DEFAULT_LANGUAGE', 'en')
-            )
+            default_transmeta_attr = attname(DEFAULT_LANGUAGE)
             result = getattr(self, default_transmeta_attr, None)
         return result
 
@@ -70,7 +71,8 @@ def default_value_getter(field):
 def default_value_setter(field):
     '''
     When setting to the name of the field itself, the value
-    in the current language will be set.
+    in the current language will be set, and also the one for the default
+    language.
     '''
 
     def default_value_func_setter(self, value):
@@ -82,12 +84,10 @@ def default_value_setter(field):
             setattr(self, attname(get_language()[:2]), value)
         elif hasattr(self, attname(settings.LANGUAGE_CODE)):
             setattr(self, attname(settings.LANGUAGE_CODE), value)
-        else:
-            default_transmeta_attr = attname(
-                getattr(settings, 'TRANSMETA_DEFAULT_LANGUAGE', 'en')
-            )
-            if hasattr(self, attname(default_transmeta_attr)):
-                setattr(self, default_transmeta_attr, value)
+
+        default_transmeta_attr = attname(DEFAULT_LANGUAGE)
+        if hasattr(self, default_transmeta_attr):
+            setattr(self, default_transmeta_attr, value)
 
     return default_value_func_setter
 
@@ -135,9 +135,6 @@ class TransMeta(models.base.ModelBase):
         if not isinstance(fields, tuple):
             raise ImproperlyConfigured("Meta's translate attribute must be a tuple")
 
-        default_language = getattr(settings, 'TRANSMETA_DEFAULT_LANGUAGE', \
-                                   settings.LANGUAGE_CODE)
-
         for field in fields:
             if not field in attrs or \
                not isinstance(attrs[field], models.fields.Field):
@@ -151,7 +148,7 @@ class TransMeta(models.base.ModelBase):
                 lang_attr = copy.copy(original_attr)
                 lang_attr.original_fieldname = field
                 lang_attr_name = get_real_fieldname(field, lang_code)
-                if lang_code != default_language:
+                if lang_code != DEFAULT_LANGUAGE:
                     # only will be required for default language
                     if not lang_attr.null and lang_attr.default is NOT_PROVIDED:
                         lang_attr.null = True
